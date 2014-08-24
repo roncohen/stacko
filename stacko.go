@@ -16,7 +16,7 @@ type Frame struct {
   PackageName  string
   Path         string
   LineNumber   int
-  InApp        bool
+  InDomain     bool
   PreContext   []string
   PostContext  []string
   Context      string
@@ -43,7 +43,7 @@ func NewStacktrace (skip int) (Stacktrace, error) {
       return nil, err
     }
 
-    inApp := i == skip || stacktrace[0].PackageName == packageName
+    InDomain := i == skip || stacktrace[0].PackageName == packageName
 
     stacktrace = append(stacktrace, Frame{
       fileName,
@@ -51,7 +51,7 @@ func NewStacktrace (skip int) (Stacktrace, error) {
       packageName,
       path,
       lineNumber,
-      inApp,
+      InDomain,
       context[:offset - 1],
       context[offset:],
       context[offset - 1],
