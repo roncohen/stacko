@@ -1,5 +1,8 @@
 # Stacko
 
+[![Build Status](https://travis-ci.org/hallas/stacko.svg?branch=master)](https://travis-ci.org/hallas/stacko)
+[![GoDoc](https://godoc.org/github.com/hallas/stacko?status.svg)](https://godoc.org/github.com/hallas/stacko)
+
 The Stacko project generates a structured stacktrace for your Golang programming
 needs.
 
