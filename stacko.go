@@ -1,6 +1,6 @@
 // Copyright 2014 Christoffer Hallas.
 
-// Package stacko provides the ability to generate a structured stackframe.
+// Package stacko provides the ability to generate a structured stacktrace.
 package stacko
 
 import (
