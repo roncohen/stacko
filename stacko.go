@@ -57,28 +57,33 @@ func NewStacktrace(skip int) (Stacktrace, error) {
 			return nil, err
 		}
 
-		// Get the actual context, a slice of strings.
-		context, offset, err := ContextInfo(path, lineNumber)
-		if err != nil {
-			return nil, err
-		}
-
 		// If this is the first frame or the frame has the same package as the first
 		// frame then mark it as in domain.
 		InDomain := i == skip || stacktrace[0].PackageName == packageName
 
-		// Append the frame to the stacktrace.
-		stacktrace = append(stacktrace, Frame{
+		// Create our frame.
+		frame := Frame{
 			fileName,
 			functionName,
 			packageName,
 			path,
 			lineNumber,
 			InDomain,
-			context[:offset-1],
-			context[offset:],
-			context[offset-1],
-		})
+			nil,
+			nil,
+			"",
+		}
+
+		// Get the actual context, a slice of strings.
+		context, offset, err := ContextInfo(path, lineNumber)
+		if err == nil {
+			frame.PreContext = context[:offset-1]
+			frame.PostContext = context[offset:]
+			frame.Context = context[offset-1]
+		}
+
+		// Append the frame to the stacktrace.
+		stacktrace = append(stacktrace, frame)
 	}
 
 	return stacktrace, nil
