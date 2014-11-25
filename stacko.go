@@ -38,7 +38,7 @@ func NewStacktrace(skip int) (Stacktrace, error) {
 	// to provide termination.
 	for i := skip; ; i++ {
 
-		// Get the program counter, path and line number for a the frame i.
+		// Get the program counter, path and line number for the frame i.
 		pc, path, lineNumber, ok := runtime.Caller(i)
 
 		// If not ok, we break and subsequently return the generated stacktrace.
