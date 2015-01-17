@@ -1,12 +1,10 @@
-// Copyright 2014 Christoffer Hallas.
-
 // Package stacko provides the ability to generate a structured stacktrace.
 package stacko
 
 import (
 	"io/ioutil"
 	"os"
-	"path/filepath"
+	"path"
 	"runtime"
 	"strings"
 )
@@ -39,7 +37,7 @@ func NewStacktrace(skip int) (Stacktrace, error) {
 	for i := skip; ; i++ {
 
 		// Get the program counter, path and line number for the frame i.
-		pc, path, lineNumber, ok := runtime.Caller(i)
+		pc, filePath, lineNumber, ok := runtime.Caller(i)
 
 		// If not ok, we break and subsequently return the generated stacktrace.
 		if !ok {
@@ -51,10 +49,12 @@ func NewStacktrace(skip int) (Stacktrace, error) {
 
 		// We extract the context of a frame, e.g. the line it self, preceding and
 		// proceding lines.
-		gopath := os.Getenv("GOPATH")
-		fileName, err := filepath.Rel(gopath, path)
-		if err != nil {
-			return nil, err
+		fileName := filePath
+		parts := strings.Split(fileName, "/")
+		for i, part := range parts {
+			if part == "src" {
+				fileName = path.Join(parts[i+1:]...)
+			}
 		}
 
 		// If this is the first frame or the frame has the same package as the first
@@ -66,7 +66,7 @@ func NewStacktrace(skip int) (Stacktrace, error) {
 			fileName,
 			functionName,
 			packageName,
-			path,
+			filePath,
 			lineNumber,
 			InDomain,
 			nil,
@@ -75,7 +75,7 @@ func NewStacktrace(skip int) (Stacktrace, error) {
 		}
 
 		// Get the actual context, a slice of strings.
-		context, offset, err := ContextInfo(path, lineNumber)
+		context, offset, err := ContextInfo(filePath, lineNumber)
 		if err == nil {
 			frame.PreContext = context[:offset-1]
 			frame.PostContext = context[offset:]
