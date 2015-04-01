@@ -12,11 +12,21 @@ import (
 // The Stacktrace type is a slice of frames.
 type Stacktrace []Frame
 
+func (s Stacktrace) String() string {
+	for _, frame := range s {
+		println(frame.FileName)
+		println(frame.InDomain)
+		println(frame.PackageName)
+	}
+	return ""
+}
+
 // The Frame type is a struct that hold a structured stacktrace frame.
 type Frame struct {
 	FileName     string
 	FunctionName string
 	PackageName  string
+	LibraryName  string
 	Path         string
 	LineNumber   int
 	InDomain     bool
@@ -45,7 +55,7 @@ func NewStacktrace(skip int) (Stacktrace, error) {
 		}
 
 		// Call our own API to get the package and function names.
-		packageName, functionName := FunctionInfo(pc)
+		packageName, functionName, libraryName := FunctionInfo(pc)
 
 		// We extract the context of a frame, e.g. the line it self, preceding and
 		// proceding lines.
@@ -59,13 +69,26 @@ func NewStacktrace(skip int) (Stacktrace, error) {
 
 		// If this is the first frame or the frame has the same package as the first
 		// frame then mark it as in domain.
-		InDomain := i == skip || stacktrace[0].PackageName == packageName
+		InDomain := i == skip || packageName == "main" || stacktrace[0].PackageName == packageName || stacktrace[0].LibraryName == libraryName
+
+		println("function name:")
+		println(functionName)
+		println("package name:")
+		println(packageName)
+		println("library name:")
+		println(libraryName)
+		println("in app name:")
+		println(InDomain)
+
+		println()
+		println()
 
 		// Create our frame.
 		frame := Frame{
 			fileName,
 			functionName,
 			packageName,
+			libraryName,
 			filePath,
 			lineNumber,
 			InDomain,
@@ -91,29 +114,38 @@ func NewStacktrace(skip int) (Stacktrace, error) {
 
 // FunctionInfo takes a program counter and returns the function and package
 // name for the frame at that counter.
-func FunctionInfo(pc uintptr) (string, string) {
+func FunctionInfo(pc uintptr) (string, string, string) {
 
 	// Get the function.
 	function := runtime.FuncForPC(pc)
 	if function == nil {
-		return "", ""
+		return "", "", ""
 	}
 
 	// We take the name which at this point is a complete address of the function,
 	// including path and file, then we take out the last part which is the
 	// function and package name seperated by a dot.
 	name := function.Name()
-	slash := strings.LastIndex(name, "/")
-	if slash < 0 {
-		slash = 0
-	} else {
-		slash++
+
+	println("name: " + name)
+
+	dots := strings.Split(name, ".")
+	packageName := strings.Join(dots[:1], ".")
+	functionName := strings.Join(dots[1:], ".")
+
+	slash := strings.LastIndex(functionName, "/")
+	if slash > -1 {
+		packageName = packageName + "." + functionName[:strings.Index(functionName, ".")]
+		functionName = functionName[slash+1:]
 	}
 
-	info := name[slash:]
-	dot := strings.LastIndex(info, ".")
+	libraryName := packageName
+	parts := strings.Split(libraryName, "/")
+	if len(parts) > 3 {
+		libraryName = strings.Join(parts[:3], "/")
+	}
 
-	return info[:dot], info[dot+1:]
+	return packageName, functionName, libraryName
 }
 
 // ContextInfo takes a path and a line number and returns a slice of strings

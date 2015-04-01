@@ -15,6 +15,6 @@ func TestNewStacktrace(t *testing.T) {
 	}
 
 	if len(stacktrace) != 4 {
-		t.Error("Stacktrace should be 4 frames.")
+		t.Error("Stacktrace should be 4 frames")
 	}
 }
