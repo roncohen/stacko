@@ -2,7 +2,6 @@
 package stacko
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
