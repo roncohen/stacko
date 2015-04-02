@@ -113,7 +113,6 @@ func FunctionInfo(pc uintptr) (string, string) {
 
 	info := name[slash:]
 	dot := strings.Index(info, ".")
-	fmt.Printf("Name: %s info: %s, %s %s\n", name, info, info[:dot], info[dot+1:])
 	return info[:dot], info[dot+1:]
 }
 
